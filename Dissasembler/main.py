@@ -1,6 +1,6 @@
 import argparse
 import os.path
-import database
+import instructions
 import constants
 
 def open_file(parse, file):
@@ -24,7 +24,7 @@ parser.add_argument("-f", dest="filename", required=True, help="Machine code fil
 args = parser.parse_args()
 
 # Instantiate the database
-machine_code = database.Database()
+machine_code = instructions.Database()
 line = []
 found_opcode = False
 while True:
@@ -32,7 +32,6 @@ while True:
     try:
         val = ord(current_byte)
     except TypeError:
-        print("Error")
         machine_code.insert(line)
         break
     if val in constants.opcodes:
