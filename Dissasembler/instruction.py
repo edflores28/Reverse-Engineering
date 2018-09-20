@@ -30,13 +30,14 @@ class Set:
         elif instruction[0] in constants.large_opcodes:
             self.opcode = constants.large_opcodes[instruction[0]][self.reg_op]
             self.kind = constants.Ins_Kind.LARGE
+            # Check the mod byte and determine where to split
+            # the list for displacement and immediate bytes
             if self.mod == 1:
                 self.disp = copy.deepcopy(instruction[2])
                 self.immediate = copy.deepcopy(instruction[3:])
             if self.mod == 2:
                 self.disp = copy.deepcopy(instruction[2:6])
                 self.immediate = copy.deepcopy(instruction[6:])
-            print(self.disp, self.immediate, instruction)
 
         elif instruction[0] in constants.disp_opcodes:
             self.opcode = constants.disp_opcodes[instruction[0]]
@@ -52,6 +53,11 @@ class Set:
             self.opcode = constants.embed_opcodes[masked_code]
             self.reg_op = instruction[0]&0x7 # Just place the register in reg_op
             self.kind = constants.Ins_Kind.EMBEDDED
+
+        elif instruction[0] in constants.immed_opcode:
+            self.opcode = constants.ret_opcodes[instruction[0]]
+            self.immediate = instruction[1:]
+            self.kind = constants.Ins_Kind.IMMEDIATE
 
     def get_opcode(self):
         return self.opcode
@@ -79,7 +85,7 @@ class Set:
 
     def get_immediate(self):
         return self.immediate
-        
+
     def set_ins_str(self, line):
         self.ins_str = line
 
