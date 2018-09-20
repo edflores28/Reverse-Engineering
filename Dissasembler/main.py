@@ -1,8 +1,9 @@
 import argparse
 import os.path
-import instructions
+import database
 import constants
-
+import utilities
+import instruction
 def open_file(parse, file):
     '''
     Routine that opens a file for reading if
@@ -13,6 +14,10 @@ def open_file(parse, file):
     else:
         return open(file, 'rb')
 
+def create_and_insert(line, database):
+    instr = instruction.Set(line)
+    database.insert(instr)
+    line.clear()
 '''
 Main application
 '''
@@ -24,7 +29,7 @@ parser.add_argument("-f", dest="filename", required=True, help="Machine code fil
 args = parser.parse_args()
 
 # Instantiate the database
-machine_code = instructions.Database()
+machine_code = database.Database()
 line = []
 found_opcode = False
 while True:
@@ -32,17 +37,15 @@ while True:
     try:
         val = ord(current_byte)
     except TypeError:
-        machine_code.insert(line)
+        create_and_insert(line, machine_code)
         break
-    if val in constants.opcodes:
+    if utilities.valid_opcode(val):
         # If there are bytes in the line then
         # insert the list in the database
         # and clear the line list
         if len(line) > 0:
-            #print(hex(line))
-            machine_code.insert(line)
-            line.clear()
+            create_and_insert(line, machine_code)
     # Add the byte to the line
     line.append(val)
 
-machine_code.format()
+machine_code.dissasemble_database()

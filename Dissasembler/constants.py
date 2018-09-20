@@ -3,7 +3,7 @@ from enum import Enum
 '''
 Constants
 '''
-opcodes = {0x31: 'xor', 0x01: 'add', 0x89: None,
+opcodes = {0x31: 'xor', 0x01: 'add', 0x89: 'mov',
             0xB8: 'mov'}
 
 large_opcodes = {0x81: {0: 'add', 6: 'xor', 3: 'sbb', 1: 'or', 7: 'cmp', 4: 'and'}}
