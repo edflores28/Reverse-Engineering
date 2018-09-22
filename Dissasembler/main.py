@@ -15,7 +15,11 @@ def open_file(parse, file):
         return open(file, 'rb')
 
 def create_and_insert(line, database):
-    instr = instruction.Set(line)
+    # Make sure to handle any errors
+    try:
+        instr = instruction.Set(line)
+    except:
+        instr = instruction.Set(None)
     database.insert(instr)
     line.clear()
 '''
@@ -31,7 +35,7 @@ args = parser.parse_args()
 # Instantiate the database
 machine_code = database.Database()
 line = []
-found_opcode = False
+prev_enc = None
 while True:
     current_byte = args.filename.read(1)
     try:
@@ -39,12 +43,35 @@ while True:
     except TypeError:
         create_and_insert(line, machine_code)
         break
-    if utilities.valid_opcode(val):
-        # If there are bytes in the line then
-        # insert the list in the database
-        # and clear the line list
-        if len(line) > 0:
-            create_and_insert(line, machine_code)
+    valid, encode = utilities.valid_opcode(val)
+    if valid:
+        # If the list list empty add the valid opcode
+        if not prev_enc:
+            prev_enc = encode
+        # Lets check the encoding
+        else:
+            # If the current opcode is 'o' or 'zo'
+            # then we have built the current insruction
+            if  prev_enc is 'o' or prev_enc is 'zo':
+                prev_enc = encode
+                create_and_insert(line, machine_code)
+            # Look at the opcodes that use memory
+            elif len(line) >= 2 and 'm' in prev_enc:
+                mod, reg_op, rm = utilities.parse_modrm_byte(line[1])
+                size = utilities.determine_list_size(mod)
+                # increment the size by 4 if the opcode is 'mi'
+                if prev_enc is 'mi':
+                    size += 4
+                if len(line) == (size+2):
+                    prev_enc = encode
+                    create_and_insert(line, machine_code)
+            elif len(line) == 5 and (prev_enc is 'i' or  prev_enc is 'oi'):
+                    prev_enc = encode
+                    create_and_insert(line, machine_code)
+            elif prev_enc is 'd' and (len(line) == 2 or len(line) == 5):
+                    prev_enc = encode
+                    create_and_insert(line, machine_code)
+
     # Add the byte to the line
     line.append(val)
 
